@@ -97,7 +97,7 @@ class Genetic_Algorithm():
 # 给定一个习题推荐列表，计算si的准确性Accuracy指标、新颖性、多样性
         Acc, Nov, Div = 0, 0, 0
         for ej in Rel_list:
-            Acc += 1 - abs(self.ds[si] - self.de[ej])  # 1 - abs(self.delta - self.de[ej])
+            Acc += abs(self.ds[si] - self.de[ej])  # 1 - abs(self.delta - self.de[ej])
 
             Rel_knowledge = set()
             for ck in range(self.C_num):
@@ -106,17 +106,17 @@ class Genetic_Algorithm():
                 Rel_knowledge.add(ck)
             intersection = len(Rel_knowledge.intersection(self.all_correct_knowledge[si]))
             union = len(Rel_knowledge.union(self.all_correct_knowledge[si]))
-            Nov += 1 - ((intersection / float(union)) if union != 0 else 0)  # 计算Jaccard相似度
+            Nov += ((intersection / float(union)) if union != 0 else 0)  # 计算Jaccard相似度
 
             for ei in Rel_list:
                 if ei == ej:
                     continue
-                Div += 1 - self.Sim(self.Q[ei], self.Q[ej])
+                Div += self.Sim(self.Q[ei], self.Q[ej])
 
         Acc = Acc / len(Rel_list) if len(Rel_list) > 0 else 0
         Nov = Nov / len(Rel_list) if len(Rel_list) > 0 else 0
         Div = Div / (len(Rel_list) * (len(Rel_list) - 1)) if len(Rel_list) > 1 else 0
-        return Acc, Nov, Div
+        return (1-Acc), (1-Nov), (1-Div)
 
     def Fitness(self, si, population):
         ans = [[0, 0, 0] for i in range(len(population))]   # Acc, Nov, Div

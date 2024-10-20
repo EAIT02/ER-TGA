@@ -2,7 +2,7 @@ import random
 import numpy as np
 import time
 import pandas as pd
-import GA4ER, PAGA4ER
+import ER_GA, ER_TGA
 
 '''
 可能是习题集的问题，变异反而可能把效果变差
@@ -44,7 +44,7 @@ class My_model():
             self.S_num, self.E_num, self.C_num, self.Q, self.X, self.CS, self.de, self.ds, self.WKC, self.CE = my_DataSet.Statics2011()
         elif name == 'Algebra2005':
             self.S_num, self.E_num, self.C_num, self.Q, self.X, self.CS, self.de, self.ds, self.WKC, self.CE = my_DataSet.Algebra2005()
-        GA = PAGA4ER.Genetic_Algorithm(CE=self.CE, S_num=self.S_num, C_num=self.C_num, X=self.X, Q=self.Q,
+        GA = ER_TGA.Genetic_Algorithm(CE=self.CE, S_num=self.S_num, C_num=self.C_num, X=self.X, Q=self.Q,
                                                  de=self.de, ds=self.ds, WKC=self.WKC,
                                                  delta=self.delta, population_size=self.population_size,
                                                  generation_num=self.generation_num,
@@ -68,4 +68,4 @@ model = My_model(Epsilon=0.35, delta=0.5, population_size=30,
                    generation_num=30, new_offsprings_num=0.3, pc=0.6, pm=0.0001, pa=0.3, Rec_num=2, N=6)
 
 model.forward(name)
-print('运行时间=',time.time() - stime)
+print('The running time is',time.time() - stime)

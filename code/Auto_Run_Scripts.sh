@@ -8,13 +8,13 @@ Age1=10
 
 for name in "${Name[@]}"
 do
-	python main.py "$name" $Age1 "$N" > results/PAGA4ER-$name-Age$Age1-N$N-Psize30-Epsilon05-1-10.txt &
+	python main.py "$name" $Age1 "$N" > results/ER-TGA-$name-Age$Age1-N$N-Psize30-Epsilon05-1-10.txt &
 done
 
 #for name in "${Name[@]}"
 #do
 #	for N in "${Ns[@]}"
 #	do
-#		python main.py "$name" $Age1 "$N" > results/PAGA4ER-$name-Age$Age1-N$N.txt &
+#		python main.py "$name" $Age1 "$N" > results/ER-TGA-$name-Age$Age1-N$N.txt &
 #	done
 #done
