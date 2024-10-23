@@ -46,28 +46,44 @@ class Genetic_Algorithm():
         Acc = [0 for i in range(self.S_num)]
         Nov = [0 for i in range(self.S_num)]
         Div = [0 for i in range(self.S_num)]
+        Proximity = [0 for i in range(self.S_num)]
+        Coverage = [0 for i in range(self.S_num)]
+        Quantity = [0 for i in range(self.S_num)]
+        Volatility = [0 for i in range(self.S_num)]
 
         for si in range(self.S_num):
             if self.E_num[si] <= 0:
                 continue
-            # if si >= self.S_num // 10: # 对于学习者较多的数据，可以提前终止
-            #     break
-            for j in range(self.Rec_num): # 分别计算推荐列表的三个指标
+            if si >= self.S_num // 10:  # 对于学习者较多的数据，可以提前终止
+                break
+            for j in range(self.Rec_num):  # 分别计算推荐列表的三个指标
                 Rel_list = Rel[si][j]
-                acc, nov, div = self.Fitness_Acc_Nov_Div(si, Rel_list)
+                acc, nov, div, Pro, Cov, Qua, Vol = self.Fitness_Acc_Nov_Div_Pro_Cov_Qua_Vol(si, Rel_list)
                 Acc[si] = max(Acc[si], acc)
                 Nov[si] = max(Nov[si], nov)
                 Div[si] = max(Div[si], div)
+                Proximity[si] = max(Proximity[si], Pro)
+                Coverage[si] = max(Coverage[si], Cov)
+                Quantity[si] = max(Quantity[si], Qua)
+                Volatility[si] = max(Volatility[si], Vol)
 
-        print('删除评价指标列表中的0元素之前：')
         print('Acc_max=',max(Acc),'Acc_mean=', statistics.mean(Acc), 'Acc_std=', statistics.stdev(Acc), 'Acc_min=',min(Acc))
         print('Nov_max=',max(Nov),'Nov_mean=', statistics.mean(Nov), 'Nov_std=', statistics.stdev(Nov), 'Nov_min=',min(Nov))
         print('Div_max=',max(Div),'Div_mean=', statistics.mean(Div), 'Div_std=', statistics.stdev(Div), 'Div_min=',min(Div))
+        print('Proximity_max=', max(Proximity), 'Proximity_mean=', statistics.mean(Proximity), 'Proximity_std=', statistics.stdev(Proximity), 'Proximity_min=',min(Proximity))
+        print('Coverage_max=', max(Coverage), 'Coverage_mean=', statistics.mean(Coverage), 'Coverage_std=',statistics.stdev(Coverage), 'Coverage_min=', min(Coverage))
+        print('Quantity_max=', max(Quantity), 'Quantity_mean=', statistics.mean(Quantity), 'Quantity_std=',statistics.stdev(Quantity), 'Quantity_min=', min(Quantity))
+        print('Volatility_max=', max(Volatility), 'Volatility_mean=', statistics.mean(Volatility), 'Volatility_std=',statistics.stdev(Volatility), 'Volatility_min=', min(Volatility))
         Acc, Nov, Div = [x for x in Acc if x > 0], [x for x in Nov if x > 0], [x for x in Div if x > 0]
+        Proximity, Coverage, Quantity, Volatility = [x for x in Proximity if x > 0], [x for x in Coverage if x > 0], [x for x in Quantity if x > 0], [x for x in Volatility if x > 0]
         print('删除评价指标列表中的0元素之后：')
         print('Acc_max=',max(Acc),'Acc_mean=', statistics.mean(Acc), 'Acc_std=', statistics.stdev(Acc), 'Acc_min=',min(Acc))
         print('Nov_max=',max(Nov),'Nov_mean=', statistics.mean(Nov), 'Nov_std=', statistics.stdev(Nov), 'Nov_min=',min(Nov))
         print('Div_max=',max(Div),'Div_mean=', statistics.mean(Div), 'Div_std=', statistics.stdev(Div), 'Div_min=',min(Div))
+        print('Proximity_max=', max(Proximity), 'Proximity_mean=', statistics.mean(Proximity), 'Proximity_std=',statistics.stdev(Proximity), 'Proximity_min=', min(Proximity))
+        print('Coverage_max=', max(Coverage), 'Coverage_mean=', statistics.mean(Coverage), 'Coverage_std=',statistics.stdev(Coverage), 'Coverage_min=', min(Coverage))
+        print('Quantity_max=', max(Quantity), 'Quantity_mean=', statistics.mean(Quantity), 'Quantity_std=',statistics.stdev(Quantity), 'Quantity_min=', min(Quantity))
+        print('Volatility_max=', max(Volatility), 'Volatility_mean=', statistics.mean(Volatility), 'Volatility_std=',statistics.stdev(Volatility), 'Volatility_min=', min(Volatility))
     def forward(self): # 针对每一个学习者, 进行遗传算法迭代, 返回Rel[si]
         Rel = [[] for i in range(self.S_num)]
         for si in range(self.S_num):
@@ -166,17 +182,22 @@ class Genetic_Algorithm():
         # 三维列表，第一维表示种群，第二维表示个体，第三维表示是否选择该题
         population = [[[random.randint(0, 1) for i in range(self.E_num[si])] for j in range(self.population_size)] for pop in range(self.N)]
         return population
-    def Fitness_Acc_Nov_Div(self, si, Rel_list):
-# 给定一个习题推荐列表，计算si的准确性Accuracy指标、新颖性、多样性
-        Acc, Nov, Div = 0, 0, 0
+    def Fitness_Acc_Nov_Div_Pro_Cov_Qua_Vol(self, si, Rel_list):
+# 给定一个习题推荐列表，计算si的准确性Accuracy指标、新颖性、多样性、Proximity、Coverage、Quantity、Volatility
+        Acc, Nov, Div, Proximity, Coverage, Quantity, Volatility = 0, 0, 0, 0, 0, 0, 0
+
+        WKC_tmp = self.WKC
         for ej in Rel_list:
             Acc += abs(self.ds[si] - self.de[ej])  # 1 - abs(self.delta - self.de[ej])
 
+
             Rel_knowledge = set()
+
             for ck in range(self.C_num):
                 if self.Q[ej][ck] == 0:
                     continue
                 Rel_knowledge.add(ck)
+                WKC_tmp[si][ck] = 0
             intersection = len(Rel_knowledge.intersection(self.all_correct_knowledge[si]))
             union = len(Rel_knowledge.union(self.all_correct_knowledge[si]))
             Nov += ((intersection / float(union)) if union != 0 else 0)  # 计算Jaccard相似度
@@ -186,12 +207,22 @@ class Genetic_Algorithm():
                     continue
                 Div += self.Sim(self.Q[ei], self.Q[ej])
 
+            Proximity += self.de[ej]
+
+        for j in range(len(Rel_list) - 1):
+            Volatility += abs(self.de[Rel_list[j]] - self.de[Rel_list[j + 1]])
+
         Acc = Acc / len(Rel_list) if len(Rel_list) > 0 else 0
         Nov = Nov / len(Rel_list) if len(Rel_list) > 0 else 0
         Div = Div / (len(Rel_list) * (len(Rel_list) - 1)) if len(Rel_list) > 1 else 0
-        return (1-Acc), (1-Nov), (1-Div)
+        Proximity = abs((Proximity / len(Rel_list) if len(Rel_list) > 0 else 0) - self.ds[si])
+        Coverage = sum(WKC_tmp[si]) / sum(self.WKC[si]) if sum(self.WKC[si]) > 0 else 0
+        Quantity = len(Rel_list) / sum(self.CE[si]) if sum(self.CE[si]) > 0 else 0
+        Volatility = Volatility / len(Rel_list) if len(Rel_list) > 0 else 0
+
+        return (1-Acc), (1-Nov), (1-Div), Proximity, Coverage, Quantity, Volatility
     def Fitness(self, si, population):
-        ans = [[0, 0, 0] for i in range(len(population))]   # Acc, Nov, Div
+        ans = [[0, 0, 0, 0, 0, 0, 0] for i in range(len(population))]   # Acc, Nov, Div
 # 将染色体chromosome转化为习题推荐列表，然后计算三个指标，用sum来表示适应度函数，越大越好
         for c in range(self.population_size):
             chromosome = population[c]
@@ -203,9 +234,9 @@ class Genetic_Algorithm():
                 ei = self.CE[si][i]
                 Rel_list.append(ei)
 
-            ans[c][0], ans[c][1], ans[c][2] = self.Fitness_Acc_Nov_Div(si, Rel_list) # Acc, Nov, Div
-        # fitness = [sum(ans[c]) for c in range(len(population))]
-        fitness = [ans[c][2] for c in range(len(population))]
+            ans[c][0], ans[c][1], ans[c][2], ans[c][3], ans[c][4], ans[c][5], ans[c][6] = self.Fitness_Acc_Nov_Div_Pro_Cov_Qua_Vol(si, Rel_list) # Acc, Nov, Div
+        fitness = [sum(ans[c]) for c in range(len(population))]
+        # fitness = [ans[c][2] for c in range(len(population))]
         return fitness
     def Selection(self, si, population): # 精英保留策略
         # 根据fitness 进行倒序排序, 优先选择数值较小的, 最终数目self.population_size
